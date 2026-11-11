@@ -29,7 +29,7 @@ export default function ReadingForm({ initialValue, onSubmit, onCancel }) {
   };
 
   return (
-    <form className="reading-form" onSubmit={submit}>
+    <form className="reading-form" onSubmit={submit} noValidate>
       <label>Date<input type="date" max={localToday} value={date} onChange={(e)=>setDate(e.target.value)} required/></label>
       <label>Time slot<select value={timeSlot} onChange={(e)=>setTimeSlot(e.target.value)}>{TIME_SLOTS.map((slot)=><option key={slot}>{slot}</option>)}</select></label>
       <label>Glucose value (mg/dl)<div className="input-with-unit"><input type="number" min="40" max="600" step="1" placeholder="e.g. 110" value={value} onChange={(e)=>setValue(e.target.value)} required/><span>mg/dl</span></div></label>
