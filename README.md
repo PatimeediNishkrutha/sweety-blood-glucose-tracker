@@ -1,152 +1,245 @@
 # Sweety – Blood Glucose Tracker
 
-A full-stack blood glucose diary built with React, Node.js, Express, PostgreSQL and Prisma. Users can securely register, manage up to four daily glucose readings, and view daily, month-to-date and previous-month reports.
+A full-stack blood glucose tracking application built using React, Node.js, Express, PostgreSQL and Prisma. Sweety allows users to securely register, log in, record up to four blood glucose readings per day, manage their readings, and view daily and monthly reports.
 
-> This is a record-keeping demo application, not a medical device. It does not diagnose conditions or provide treatment advice.
+> **Note:** This is a record-keeping demo application, not a medical device. It does not diagnose medical conditions or provide treatment advice.
 
-## Technology
+## Technology Stack
 
-- Frontend: React 18, Vite, React Router, Axios, CSS, Recharts
-- Backend: Node.js, Express
-- Database: PostgreSQL
-- ORM: Prisma
-- Authentication: JWT and bcryptjs
-- Tests: Node.js test runner and Vitest / React Testing Library
+- **Frontend:** React 18, Vite, React Router, Axios, CSS, Recharts
+- **Backend:** Node.js, Express.js
+- **Database:** PostgreSQL
+- **ORM:** Prisma
+- **Authentication:** JWT and bcryptjs
+- **Testing:** Node.js test runner, Vitest and React Testing Library
 
-## Requirements
+## Prerequisites
 
-- Node.js 20 or newer (Node 22 LTS recommended)
+Install the following before running the application:
+
+- Node.js 20 or newer (Node.js 22 LTS recommended)
 - npm 10 or newer
 - PostgreSQL 14 or newer
+- Git
 
-## 1. Create the database
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/PatimeediNishkrutha/sweety-blood-glucose-tracker.git
+cd sweety-blood-glucose-tracker
+```
+
+## 2. Create the PostgreSQL Database
 
 Start PostgreSQL and create a database named `sweety_db`.
 
-Using `psql`:
+Using pgAdmin, create a database called `sweety_db`.
+
+Alternatively, using the PostgreSQL command line:
 
 ```sql
 CREATE DATABASE sweety_db;
 ```
 
-You can also create the database with pgAdmin.
+## 3. Configure Environment Variables
 
-## 2. Configure environment variables
+Copy the backend environment template:
 
-Copy `backend/.env.example` to `backend/.env` and update the PostgreSQL username/password and JWT secret.
+```bash
+cp backend/.env.example backend/.env
+```
 
-Example:
+On Windows PowerShell, you can use:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+Update `backend/.env` with your local PostgreSQL credentials and a secure JWT secret.
+
+Example configuration:
 
 ```env
 DATABASE_URL="postgresql://postgres:your_password@localhost:5432/sweety_db?schema=public"
-JWT_SECRET="use-a-long-random-secret-with-at-least-24-characters"
+JWT_SECRET="your-long-random-secret"
 JWT_EXPIRES_IN="1d"
 PORT=5000
 CLIENT_URL="http://localhost:5173"
 ```
 
-Do not commit `.env` or real secrets. The root `.env.example` is a reference copy.
+**Important:** Never commit `.env` files, database passwords or real secrets to GitHub. The `.env.example` file contains example configuration only.
 
-## 3. Install dependencies
+## 4. Install Dependencies
 
-From the project root:
+From the project root, install all dependencies:
 
 ```bash
 npm install
 ```
 
-## 4. Generate Prisma client and create tables
+## 5. Generate Prisma Client and Run Database Migrations
+
+Generate the Prisma client:
 
 ```bash
 npm run db:generate
+```
+
+Run database migrations:
+
+```bash
 npm run db:migrate
 ```
 
-Prisma will create the tables and the unique constraint that prevents a user from saving duplicate readings for the same date and time slot.
+Prisma creates the required database tables and constraints, including the unique constraint that prevents duplicate readings for the same user, date and time slot.
 
-## 5. Seed demo data (optional)
+## 6. Seed Demo Data
+
+Run the seed command to create a demo user and sample glucose readings:
 
 ```bash
 npm run db:seed
 ```
 
-Demo login:
+The seed script creates or updates the demo account and inserts sample readings across multiple days. It can be safely run again without creating duplicate records for the same user, date and time slot.
+
+**Demo login credentials:**
 
 - Email: `demo@sweety.app`
 - Password: `SweetyDemo123!`
 
-Change or remove this demo account before deploying publicly.
+For a public production deployment, disable or remove the demo account and use a secure password.
 
-## 6. Run the application
+## 7. Run the Application
 
-From the root folder:
+Start both frontend and backend from the project root:
 
 ```bash
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend health check: http://localhost:5000/api/health
+Application URLs:
 
-You can also run each workspace separately:
+- **Frontend:** http://localhost:5173
+- **Backend health check:** http://localhost:5000/api/health
+
+To run the applications separately:
+
+Backend:
 
 ```bash
 npm run dev -w backend
+```
+
+Frontend:
+
+```bash
 npm run dev -w frontend
 ```
 
-## 7. Run tests and build
+## 8. Run Tests and Build
+
+Run all backend and frontend tests:
 
 ```bash
 npm test
+```
+
+Build the frontend:
+
+```bash
 npm run build -w frontend
 ```
 
-Backend date-range tests use Node's built-in test runner. Frontend form tests use Vitest and React Testing Library.
+The project includes:
 
-## Features
+- Backend unit tests using Node.js's built-in test runner.
+- Frontend form validation tests using Vitest and React Testing Library.
+- GitHub Actions CI workflow that automatically runs tests on pushes and pull requests targeting the `main` branch.
 
-### Authentication
-- Register with name, email and password.
-- Passwords are hashed with bcryptjs (never stored as plain text).
-- JWT-protected routes.
-- User identity comes from the verified token. Reading queries are always scoped to the authenticated user.
+## Application Features
 
-### Readings
-- Create, list, update and delete readings.
-- Four allowed slots: Morning (fasting), After breakfast, After lunch, After dinner.
+### 1. User Authentication
+
+- User registration with name, email and password.
+- Secure password hashing using bcryptjs.
+- User login using JWT authentication.
+- Protected API routes.
+- Users can access only their own glucose readings.
+
+### 2. Blood Glucose Reading Management
+
+Users can add, view, edit and delete glucose readings.
+
+The application supports four daily time slots:
+
+1. Morning (fasting)
+2. After breakfast
+3. After lunch
+4. After dinner
+
+**Validation rules:**
+
+- Glucose value is required.
 - Value must be a whole number between 40 and 600 mg/dl.
-- One reading per slot per date per user.
-- Maximum four readings per date per user.
-- Future dates are rejected.
-- Paginated `GET /api/readings?page=1&limit=20` is included.
+- Only one reading is allowed per time slot per day.
+- A maximum of four readings is allowed per day.
+- Future dates are not allowed.
+- Clear validation error messages are displayed when a rule is violated.
 
-### Reports
-- Daily: selected date.
-- Month-to-date: first day of selected month through selected date.
-- Monthly: complete previous calendar month.
-- Highest, lowest, average (one decimal) and reading count.
-- Daily report includes each reading and its slot.
-- Empty report response is supported.
+### 3. Reports and Calculations
 
-## API endpoints
+The application provides three types of reports:
 
-All reading and report endpoints require `Authorization: Bearer <token>`.
+| Report | Description |
+|---|---|
+| Daily Report | Readings for the selected date |
+| Month-to-Date Report | First day of the selected month through the selected date |
+| Monthly Report | Complete previous calendar month |
+
+Each report displays:
+
+- Highest glucose reading
+- Lowest glucose reading
+- Average glucose reading, rounded to one decimal place
+- Total number of readings
+
+The daily report also displays individual readings and their corresponding time slots.
+
+A friendly empty state is displayed when no readings are available.
+
+### 4. Additional Features
+
+- Pagination support for reading retrieval.
+- Dashboard with recent glucose readings.
+- Monthly glucose trend chart.
+- Responsive user interface.
+- Backend and frontend validation.
+
+## API Endpoints
+
+All reading and report endpoints require a valid JWT access token in the Authorization header.
+
+Format:
+
+```text
+Authorization: Bearer <token>
+```
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/auth/register` | Register |
-| POST | `/api/auth/login` | Login |
-| GET | `/api/auth/me` | Current user |
-| GET | `/api/readings` | List user's readings |
-| POST | `/api/readings` | Add a reading |
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Log in |
+| GET | `/api/auth/me` | Get current user details |
+| GET | `/api/readings` | Retrieve user's readings |
+| POST | `/api/readings` | Add a glucose reading |
 | PUT | `/api/readings/:id` | Update a reading |
 | DELETE | `/api/readings/:id` | Delete a reading |
-| GET | `/api/reports/daily?date=YYYY-MM-DD` | Daily report |
-| GET | `/api/reports/month-to-date?date=YYYY-MM-DD` | Month-to-date report |
-| GET | `/api/reports/monthly?date=YYYY-MM-DD` | Previous-month report |
+| GET | `/api/reports/daily?date=YYYY-MM-DD` | Get daily report |
+| GET | `/api/reports/month-to-date?date=YYYY-MM-DD` | Get month-to-date report |
+| GET | `/api/reports/monthly?date=YYYY-MM-DD` | Get previous-month report |
 
-Example reading body:
+### Example Reading Request
 
 ```json
 {
@@ -156,21 +249,38 @@ Example reading body:
 }
 ```
 
-## Notes and assumptions
+## Notes and Assumptions
 
-- Dates are stored as PostgreSQL `DATE` values and parsed as calendar dates to avoid time-of-day shifts.
-- The selected date controls all report periods. The monthly report always means the complete previous calendar month relative to the selected date.
-- JWT tokens are stored in browser local storage for this assignment. For a production system, consider secure, HTTP-only cookies, refresh-token rotation, rate limiting, stronger audit logging and a stricter deployment CORS policy.
-- The UI displays glucose numbers as records only. It intentionally does not label values as medically safe/unsafe.
-- Pagination is included as an optional enhancement. The dashboard and chart request a bounded list of recent readings for this assignment.
-- The backend is authoritative for validation; frontend validation is provided for a quicker user experience.
-- More time could be used for integration tests against a disposable PostgreSQL database, stronger accessibility review, date/time-zone configuration, Docker Compose and clinician-approved patient sharing.
+- Dates are stored as PostgreSQL `DATE` values and handled as calendar dates to avoid time-of-day shifts.
+- The selected date determines the reporting periods. The monthly report always represents the complete previous calendar month relative to the selected date.
+- JWT tokens are stored in browser local storage for this assignment. A production application could use secure HTTP-only cookies, refresh-token rotation and additional security controls.
+- The application records glucose readings but does not provide medical diagnosis or treatment recommendations.
+- Pagination is implemented as an additional enhancement.
+- Backend validation is authoritative, while frontend validation provides immediate feedback to users.
+- With more development time, I would add integration tests against a separate PostgreSQL test database, improve accessibility, introduce Docker Compose, strengthen audit logging and explore clinician-approved patient sharing.
 
-## GitHub submission checklist
+## GitHub Repository
 
-1. Create a public GitHub repository.
-2. Commit the project in meaningful steps rather than one large commit.
-3. Confirm `.env` is not tracked.
-4. Run the migrations, seed script, tests and frontend build.
-5. Capture screenshots or a 2–3 minute recording showing registration/login, adding/editing/deleting readings and all three report periods.
-6. Include the repository URL and demo media in your submission email.
+Repository: https://github.com/PatimeediNishkrutha/sweety-blood-glucose-tracker
+
+The project is maintained with meaningful Git commits and includes a GitHub Actions workflow for automated testing.
+
+## Submission Checklist
+
+- [x] Public GitHub repository.
+- [x] React frontend and Node.js/Express backend.
+- [x] PostgreSQL database integration.
+- [x] User authentication and password hashing.
+- [x] Reading management and validation.
+- [x] Daily and monthly reports.
+- [x] README installation and setup instructions.
+- [x] `.env.example` without real secrets.
+- [x] Database seed script with demo user and sample readings.
+- [x] Backend and frontend tests.
+- [x] GitHub Actions CI workflow.
+
+**Remaining submission evidence:**
+
+- [ ] Capture screenshots or record a 2–3 minute application demonstration.
+- [ ] Verify the deployed application, if submitting a live application URL.
+- [ ] Include the GitHub repository link and demo evidence in the reply email to Kenpath.
